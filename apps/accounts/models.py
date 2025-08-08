@@ -13,7 +13,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
-    image = models.ImageField(upload_to='images/', null=True, blank=True)
+    image = models.URLField(null=True, blank=True)
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -45,3 +45,15 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         """return the str representation"""
         return f"{self.first_name} {self.last_name}"
+
+
+class Profile(models.Model):
+    city = models.CharField(max_length=100, null=True, blank=True)
+    state = models.CharField(max_length=100, null=True, blank=True)
+    country = models.CharField(max_length=100, null=True, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+
+    def __str__(self):
+        return f"[User Profile] {self.user.get_full_name()}"

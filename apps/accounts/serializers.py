@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from dj_rest_auth.registration.serializers import RegisterSerializer
 
-from .models import User
+from .models import User, Profile
 
 
 class UserRegisterSerializer(RegisterSerializer):
@@ -22,7 +22,7 @@ class UserRegisterSerializer(RegisterSerializer):
     username = None
     first_name = serializers.CharField(max_length=50)
     last_name = serializers.CharField(max_length=50)
-    image = serializers.ImageField(required=False, allow_null=True)
+    image = serializers.URLField(required=False, allow_null=True)
     password = serializers.CharField(write_only=True)
     password1 = None
     password2 = None
@@ -59,8 +59,20 @@ class UserRegisterSerializer(RegisterSerializer):
         user.save()
 
 
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = [
+            "city",
+            "state",
+            "country",
+            "date_of_birth",
+        ]
+
+
 class UserDetailSerializer(serializers.ModelSerializer):
     """user detail serializer"""
+    profile = ProfileSerializer()
 
     class Meta:
         model = User
@@ -69,8 +81,34 @@ class UserDetailSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "image",
+            "profile",
             "is_active",
             "date_joined",
             "updated_at",
         ]
         read_only_fields = ["email", "is_active", "date_joined", "updated_at"]
+
+    def update(self, instance, validated_data):
+        """update user profile"""
+        method = self.context["request"].method
+        if (method != 'PATCH'):
+            raise serializers.ValidationError(f"Method not allowed: {method}. Only `PATCH`")
+
+
+        profile_data = validated_data.pop('profile', {})
+
+        for i, j in validated_data.items():
+            if i in self.Meta.read_only_fields:
+                continue
+            setattr(instance, i, j)
+        instance.save()
+
+        profile = Profile.objects.get(user=instance)
+        serializer = ProfileSerializer(profile, data=profile_data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+        else:
+            raise serializers.ValidationError(f"Invalid profile data: {serializer.errors}")
+        
+        return instance
+

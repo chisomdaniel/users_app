@@ -1,6 +1,9 @@
+import os
+from dotenv import load_dotenv
 from pathlib import Path
 from datetime import timedelta
 
+load_dotenv(".env")
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -31,10 +34,12 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
     'rest_framework',
     'rest_framework.authtoken',
     'dj_rest_auth',
     'dj_rest_auth.registration',
+    'drf_spectacular',
     # local
     'apps.accounts',
 ]
@@ -127,13 +132,24 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'accounts.User'
 SITE_ID = 1
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+GOOGLE_OAUTH_CLIENT_ID = os.getenv("GOOGLE_OAUTH_CLIENT_ID")
+GOOGLE_OAUTH_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH_CLIENT_SECRET")
+GOOGLE_OAUTH_CALLBACK_URL = os.getenv("GOOGLE_OAUTH_CALLBACK_URL")
 
 # django rest framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Users app',
+    'DESCRIPTION': 'Manage users account in any project',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
 
 # Simple jwt
@@ -150,6 +166,8 @@ REST_AUTH = {
     'JWT_AUTH_REFRESH_COOKIE': 'refresh-token',
     'USER_DETAILS_SERIALIZER': 'apps.accounts.serializers.UserDetailSerializer',
     'REGISTER_SERIALIZER': 'apps.accounts.serializers.UserRegisterSerializer',
+    'JWT_AUTH_HTTPONLY': False,
+    'JWT_AUTH_RETURN_EXPIRATION': True,
 }
 
 # allauth
@@ -161,3 +179,29 @@ ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "first_name*", "last_name*", "password1*", "password2*"]
 ACCOUNT_EMAIL_UNKNOWN_ACCOUNTS = False
 ACCOUNT_EMAIL_SUBJECT_PREFIX = "MY Users"
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APPS': [
+            {
+                'client_id': GOOGLE_OAUTH_CLIENT_ID,
+                'secret': GOOGLE_OAUTH_CLIENT_SECRET,
+                'key': "",
+            }
+        ],
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'offline',
+        },
+        'OAUTH_PKCE_ENABLED': True,
+        'FETCH_USERINFO': True,
+        'EMAIL_AUTHENTICATION': True,
+    }
+}
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+# SOCIALACCOUNT_STORE_TOKENS = True
+SOCIALACCOUNT_ADAPTER = 'apps.accounts.adapters.CustomSocialAdapter'
+

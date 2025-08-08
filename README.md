@@ -4,15 +4,20 @@ Building a stand alone app for user management. Includes every functionality nee
 - [x] Custom user class and managers
 - [x] Custom admin forms
 - [x] User registration
-- [ ] User authentication
+- [x] User authentication
 - [ ] Email verification with otp
-- [ ] User profile
+- [x] User profile
 - [ ] User image upload
+- [x] User account and profile update
+- [x] User profile view
 - [ ] Password reset
 - [ ] User email notification on updates
-- [ ] Social auth with Google, Facebook and Github
+- [x] Social auth with Google
+- [ ] Social auth with Facebook and Github
+- [x] Custom social adapter to manage custom user model on create
 - [ ] An Email service
 - [ ] Support text message sending for verification code and notification
+- [x] Documentation with swagger
 
 #### Other backend services includes:
 - An email service
