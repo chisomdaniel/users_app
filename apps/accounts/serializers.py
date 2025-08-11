@@ -1,5 +1,9 @@
+import os
+import uuid
+from PIL import Image
 from rest_framework import serializers
 from dj_rest_auth.registration.serializers import RegisterSerializer
+from django.conf import settings
 
 from .models import User, Profile
 
@@ -49,7 +53,7 @@ class UserRegisterSerializer(RegisterSerializer):
         })
         return data
 
-    def custom_signup(self, request, user):
+    def custom_signup(self, request, user: User):
         """
         perform some custom action on the user model signup.
         If a profile model is linked to the user model, you can
@@ -112,3 +116,24 @@ class UserDetailSerializer(serializers.ModelSerializer):
         
         return instance
 
+
+class VerifyEmailSerialzer(serializers.Serializer):
+    email = serializers.EmailField()
+    code = serializers.CharField(max_length=6)
+
+
+class ProfileImageUploadSerializer(serializers.Serializer):
+    image = serializers.ImageField()
+
+    def create(self, validated_data):
+        file_location = os.path.join(settings.PROFILE_IMAGE_DIRECTORY,
+                                     'profile-' + str(uuid.uuid4().hex)[:7] + '.jpg')
+
+        img = Image.open(validated_data.get("image"))
+        img.save(file_location)
+        validated_data["image"] = file_location
+        return validated_data
+
+    def to_representation(self, instance):
+        """the instance is a dict as set in the create method"""
+        return instance

@@ -1,0 +1,8 @@
+Hello {{ user.first_name|default:"" }},
+
+Your email verification code is: {{ code }}
+
+This code will expire in 10 minutes.
+
+Thanks,
+Users app team.

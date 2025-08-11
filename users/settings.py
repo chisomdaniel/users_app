@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from pathlib import Path
 from datetime import timedelta
+import warnings
 
 load_dotenv(".env")
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -60,7 +61,9 @@ ROOT_URLCONF = 'users.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            BASE_DIR / "templates",
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -135,6 +138,11 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 GOOGLE_OAUTH_CLIENT_ID = os.getenv("GOOGLE_OAUTH_CLIENT_ID")
 GOOGLE_OAUTH_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH_CLIENT_SECRET")
 GOOGLE_OAUTH_CALLBACK_URL = os.getenv("GOOGLE_OAUTH_CALLBACK_URL")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "admin@admin.com")
+DEFAULT_AVATER_URL = None # url to the default avatar used for the user model
+PROFILE_IMAGE_DIRECTORY = 'profile'
+ # To ignore all warnings from a specific module
+warnings.filterwarnings("ignore", module="dj_rest_auth")
 
 # django rest framework
 REST_FRAMEWORK = {
@@ -204,4 +212,5 @@ SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
 # SOCIALACCOUNT_STORE_TOKENS = True
 SOCIALACCOUNT_ADAPTER = 'apps.accounts.adapters.CustomSocialAdapter'
+ACCOUNT_ADAPTER = 'apps.accounts.adapters.CustomAccountAdapter'
 
