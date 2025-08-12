@@ -50,7 +50,7 @@ class GoogleLogin(SocialLoginView):
     client_class = CustomGoogleOAuth2Client
 
 
-# 'https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=http://localhost:8000/accounts/google/login/callback/&prompt=consent&response_type=code&client_id=782621328736-o4u0j11en1kq47t08edirf5f72l9h8sm.apps.googleusercontent.com&scope=openid%20email%20profile&access_type=offline'
+# Google login link: 'https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=http://localhost:8000/accounts/google/login/callback/&prompt=consent&response_type=code&client_id=782621328736-o4u0j11en1kq47t08edirf5f72l9h8sm.apps.googleusercontent.com&scope=openid%20email%20profile&access_type=offline'
 
 class GoogleLoginCallback(APIView):
     def get(self, request, *args, **kwargs):
@@ -65,8 +65,8 @@ class GoogleLoginCallback(APIView):
         if code is None:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         
-        # TODO: url should be replaced with the host base url
-        token_endpoint_url = urljoin("http://localhost:8000", reverse("google_login"))
+        host = request.get_host()
+        token_endpoint_url = urljoin(host, reverse("google_login"))
         response = requests.post(url=token_endpoint_url, data={"code": code})
         if response.status_code not in [200, 201]:
             response.raise_for_status() # TODO: implement this properly for a REST response
@@ -75,6 +75,7 @@ class GoogleLoginCallback(APIView):
 
 
 class VerifyEmailCodeView(APIView):
+    """Use this view if the `EMAIL_VERIFICATION_BY_CODE` setting is set to true"""
     serializer_class = VerifyEmailSerialzer
 
     def post(self, request):
@@ -92,20 +93,20 @@ class VerifyEmailCodeView(APIView):
 
         try:
             otp = OTPModel.objects.get(
-                user__email=email, code=code, is_used=False#, expires_at__lt=timezone.now()
+                user__email=email, code=code, is_used=False
                 )
         except OTPModel.DoesNotExist:
             return Response({
-                "detail": "Invalid code"
+                "detail": "Invalid or expired code"
             }, status=status.HTTP_400_BAD_REQUEST)
         
         if otp.expires_at < timezone.now():
             return Response({
-                "detail": "Code expired"
+                "detail": "Invalid or expired code"
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        otp.is_used = True
-        otp.save() # TODO: instead, delete after verifying
+        # otp.is_used = True
+        otp.delete() # delete after verifying
 
         email_address = EmailAddress.objects.get(user=otp.user, email=email)
         get_adapter().confirm_email(request, email_address)

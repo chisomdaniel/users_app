@@ -2,3 +2,7 @@
 db.*
 .env
 profile/
+__pycache__/
+.vscode/
+*.sqlite3
+*.log

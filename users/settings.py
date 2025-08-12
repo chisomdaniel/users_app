@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'allauth',
     'allauth.account',
+    'allauth.headless',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'rest_framework',
@@ -131,7 +132,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# App settings
+# APP SETTINGS
 AUTH_USER_MODEL = 'accounts.User'
 SITE_ID = 1
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -141,10 +142,11 @@ GOOGLE_OAUTH_CALLBACK_URL = os.getenv("GOOGLE_OAUTH_CALLBACK_URL")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "admin@admin.com")
 DEFAULT_AVATER_URL = None # url to the default avatar used for the user model
 PROFILE_IMAGE_DIRECTORY = 'profile'
- # To ignore all warnings from a specific module
-warnings.filterwarnings("ignore", module="dj_rest_auth")
+EMAIL_VERIFICATION_BY_CODE = False # must set to either True or False
+VERIFICATION_CODE_EXPIRATION_TIME = 10 # set time the code should expire in minutes
+warnings.filterwarnings("ignore", module="dj_rest_auth") # To ignore all warnings from a specific module
 
-# django rest framework
+# DJANGO REST FRAMEWORK
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
@@ -160,29 +162,30 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
 }
 
-# Simple jwt
+# SIMPLE JWT
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=2),
     "UPDATE_LAST_LOGIN": True,
 }
 
-# dj-rest-auth
+# DJ-REST-AUTH
 REST_AUTH = {
     'USE_JWT': True,
     'JWT_AUTH_COOKIE': 'access-token',
     'JWT_AUTH_REFRESH_COOKIE': 'refresh-token',
     'USER_DETAILS_SERIALIZER': 'apps.accounts.serializers.UserDetailSerializer',
     'REGISTER_SERIALIZER': 'apps.accounts.serializers.UserRegisterSerializer',
+    'LOGIN_SERIALIZER': 'apps.accounts.serializers.CustomLoginSerializer',
     'JWT_AUTH_HTTPONLY': False,
     'JWT_AUTH_RETURN_EXPIRATION': True,
 }
 
-# allauth
+# ALLAUTH
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_EMAIL_UNKNOWN_ACCOUNTS = False
-# ACCOUNT_EMAIL_VERIFICATION_BY_CODE = True
-ACCOUNT_EMAIL_VERIFICATION = "optional" # "mandatory"
+# ACCOUNT_EMAIL_VERIFICATION_BY_CODE = True # use app specific setting instead (see above)
+ACCOUNT_EMAIL_VERIFICATION = "mandatory" # "optional"
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "first_name*", "last_name*", "password1*", "password2*"]
 ACCOUNT_EMAIL_UNKNOWN_ACCOUNTS = False
@@ -213,4 +216,6 @@ SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
 # SOCIALACCOUNT_STORE_TOKENS = True
 SOCIALACCOUNT_ADAPTER = 'apps.accounts.adapters.CustomSocialAdapter'
 ACCOUNT_ADAPTER = 'apps.accounts.adapters.CustomAccountAdapter'
-
+HEADLESS_FRONTEND_URLS = {
+    "account_confirm_email": "https://users.app/account/verify-email/{key}",
+}

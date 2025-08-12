@@ -3,6 +3,7 @@ import uuid
 from PIL import Image
 from rest_framework import serializers
 from dj_rest_auth.registration.serializers import RegisterSerializer
+from dj_rest_auth.serializers import LoginSerializer
 from django.conf import settings
 
 from .models import User, Profile
@@ -137,3 +138,7 @@ class ProfileImageUploadSerializer(serializers.Serializer):
     def to_representation(self, instance):
         """the instance is a dict as set in the create method"""
         return instance
+
+
+class CustomLoginSerializer(LoginSerializer):
+    username = None
